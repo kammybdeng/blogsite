@@ -1,0 +1,39 @@
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'blogposts/style.css' %}">
+<!DOCTYPE html>
+
+<html lang="en-us" >
+<h1> Post </h1>
+
+<div class="post">
+    <p style="font-size:15px">{{ post.author.username }}    {{ post.published_date.date }}</p>
+    <p style="font-family:verdana; font-size:30px">{{ post.content|linebreaksbr }}</p>
+    <p>{{ post.likes }} like{{ post.like|pluralize }}</p>
+</div>
+
+<form class="likebutton" action="{% url 'blogposts:like_post' post.id %}" method="post">
+  {% csrf_token %}
+  <input type="submit" value="Like">
+</form>
+
+<div class='commentlist'>
+{% for c in post.comment_set.all %}
+    <li>{{ c.comment_text }} </li>
+{% endfor %}
+</div>
+
+<form action="{% url 'blogposts:create_comment' post.id %}" method="post">
+  {% csrf_token %}
+  <label for="comment">Comment:</label>
+  <br>
+    <textarea
+    rows="4" cols="50"
+    id="c{{ forloop.counter }}" name="comment" ></textarea>
+  <br>
+<input type="submit" value="Submit">
+</form>
+
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+<a href="{% url 'blogposts:index' %}">Home</a>
