@@ -1,0 +1,11 @@
+{% extends 'admin/base.html' %}
+
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'blogposts/style.css' %}">
+
+{% block title %}Logout{% endblock %}
+
+{% block content %}
+  <p>Logged out!</p>
+  <a href="{% url 'blogposts:login' %}"> Click here to login again.</a>
+{% endblock %}

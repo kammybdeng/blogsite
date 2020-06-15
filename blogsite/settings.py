@@ -51,6 +51,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'blogsite.urls'
+LOGIN_REDIRECT_URL = '/blogposts'
+
 
 TEMPLATES = [
     {

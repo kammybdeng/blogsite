@@ -1,10 +1,20 @@
 from django.urls import path
+#from django.views import generic.TemplateView
+from django.conf.urls import include
+from django.contrib.auth.views import LoginView, LogoutView
 from . import views
+from .forms import UserLoginForm
 
 app_name = 'blogposts'
 urlpatterns = [
     # ex: /polls/
+    #path('', include('django.contrib.auth.urls')),
     path('signup/', views.signup, name = 'signup'),
+    #path('connection/',TemplateView.as_view(template_name = 'blogposts/login.html')),
+    path('login/', LoginView.as_view(template_name= 'registration/login.html',
+    authentication_form = UserLoginForm), name = 'login'),
+    path('logout/', LogoutView.as_view(template_name= 'registration/logout.html'),
+    name = 'logout'),
     path('', views.IndexView.as_view(), name = 'index'),
     # ex: /polls/5/
     # the 'name' value as called by the {% url %} template tag

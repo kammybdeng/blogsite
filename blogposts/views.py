@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from django.contrib.auth.models import User
 from .forms import SignUpForm
+#LoginForm
 from .models import Post
 
 
@@ -22,11 +23,14 @@ from .models import Post
 class IndexView(generic.ListView):
     #model = Post
     template_name = 'blogposts/index.html'
-    context_object_name = 'latest_question_list'
+    context_object_name = 'last_ten_in_ascending_order'
 
     def get_queryset(self):
         """Return the last ten published questions."""
-        return Post.objects.order_by('published_date')[:10]
+        last_ten = Post.objects.order_by('-published_date')[:10]
+        last_ten_in_ascending_order = reversed(last_ten)
+        return last_ten_in_ascending_order
+
 # def details(request, post_id):
 #     post = get_object_or_404(Post, pk=post_id)
 #     post_text = Post.objects.get(pk=post_id).post_text
@@ -55,6 +59,24 @@ def signup(request):
         form = SignUpForm()
     return render(request, 'blogposts/signup.html', {'form': form})
 
+# def loginpage(request):
+#     #username = 'not logged in'
+#     if request.method == 'POST':
+#         username = request.POST['username']
+#         password = request.POST['password']
+#         post = User.objects.filter(username=username)
+#         if post:
+#             username = request.POST['username']
+#             request.session['username'] = username
+#             return HttpResponseRedirect(reverse('blogposts:index'))
+#         else:
+#             return render(request, 'registration/login.html', {})
+#     return render(request, 'registration/login.html', {})
+            #return HttpResponseRedirect(reverse('blogposts:detail', args=(2,)))
+    # else:
+    #     MyLoginForm = LoginForm()
+            #return HttpResponseRedirect('blogposts/login.html')
+    #return render(request, 'blogposts/loggedin.html', {"username" : username})
 
 def create_comment(request, post_id):
     post = get_object_or_404(Post, pk=post_id)

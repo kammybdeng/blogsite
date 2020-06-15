@@ -1,9 +1,7 @@
 {% load static %}
 
 <link rel="stylesheet" type="text/css" href="{% static 'blogposts/style.css' %}">
-<!DOCTYPE html>
 
-<html lang="en-us" >
 <h1> Post </h1>
 
 <div class="post">
@@ -34,6 +32,10 @@
 <input type="submit" value="Submit">
 </form>
 
+<a href="{% url 'blogposts:index' %}" class="homepagebutton">Home Page</a>
+
+<!-- <form action="{% url 'blogposts:index' %} ">
+    <input type="submit" value="Home Page" />
+</form> -->
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-<a href="{% url 'blogposts:index' %}">Home</a>

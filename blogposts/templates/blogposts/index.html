@@ -2,24 +2,25 @@
 
 <link rel="stylesheet" type="text/css" href="{% static 'blogposts/style.css' %}">
 
-<!DOCTYPE html>
-
-<html lang="en-us" >
 <h1> Home Page </h1>
+  <div>
+    {% if last_ten_in_ascending_order %}
+        <ul class="commentarea">
+        {% for post in last_ten_in_ascending_order %}
+           <li><a href="{% url 'blogposts:detail' post.id %}">{{ post.content }}</a> - {{ post.author }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No posts are available.</p>
+    {% endif %}
+  </div>
+  <div>
+    <form action="{% url 'blogposts:create_post' %}" method="post">
+      {% csrf_token %}
+      <label>New Post:</label><br>
+        <textarea rows="4" cols="50" name="create_post" ></textarea><br>
+    <input type="submit" value="Submit">
+    </form>
+  </div>
 
-{% if latest_question_list %}
-    <ul class="commentarea">
-    {% for post in latest_question_list %}
-       <li><a href="{% url 'blogposts:detail' post.id %}">{{ post.content }}</a></li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No posts are available.</p>
-{% endif %}
-
-<form action="{% url 'blogposts:create_post' %}" method="post">
-  {% csrf_token %}
-  <label>New Post:</label><br>
-    <textarea rows="4" cols="50" name="create_post" ></textarea><br>
-<input type="submit" value="Submit">
-</form>
+<a href="{% url 'blogposts:logout' %}" class="logoutbutton">Logout</a>
