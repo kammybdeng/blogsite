@@ -1,20 +1,37 @@
 
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'blogposts/style.css' %}">
+{% comment "Optional note" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+  <h1>Login</h1>
+  <form method="post">
+    {% csrf_token %}
+
+      {{ form.non_field_errors }}
+      <div class="fieldWrapper">
+          {{ form.username.errors }}
+          <label for="{{ form.username.id_for_label }}">Username:</label>
+          {{ form.username }}
+      </div>
+      <div class="fieldWrapper">
+          {{ form.password.errors }}
+          <label for="{{ form.password.id_for_label }}">Password:</label>
+          {{ form.password }}
+      </div>
+      <input type="hidden" name="next" value="{{ next }}" />
+      <button type="submit">Login</button>
+  </form>
+{% endblock %}
+{% endcomment %}
 
 
-<h2>Login</h2>
-<form method="post">{% csrf_token %}
-    {{ form.non_field_errors }}
-    <div class="fieldWrapper">
-        {{ form.username.errors }}
-        <label for="{{ form.username.id_for_label }}">Username:</label>
-        {{ form.username }}
-    </div>
-    <div class="fieldWrapper">
-        {{ form.password.errors }}
-        <label for="{{ form.password.id_for_label }}">Password:</label>
-        {{ form.password }}
-    </div>
-    <button type="submit">Login</button>
-</form>
+{% extends "base.html" %}
+{% block title %}Log-in{% endblock %}
+{% block content %}
+  <h1>Login</h1>
+  <p>Please, use the following form to log-in:</p>
+  <form method="post">
+    {{ form.as_p }}
+    {% csrf_token %}
+    <p><input type="submit" value="Log in"></p>
+  </form>
+{% endblock %}

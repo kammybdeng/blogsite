@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.views import generic
 from django.contrib.auth import login, authenticate
+from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 
 from django.contrib.auth.models import User
@@ -59,24 +60,10 @@ def signup(request):
         form = SignUpForm()
     return render(request, 'blogposts/signup.html', {'form': form})
 
-# def loginpage(request):
-#     #username = 'not logged in'
-#     if request.method == 'POST':
-#         username = request.POST['username']
-#         password = request.POST['password']
-#         post = User.objects.filter(username=username)
-#         if post:
-#             username = request.POST['username']
-#             request.session['username'] = username
-#             return HttpResponseRedirect(reverse('blogposts:index'))
-#         else:
-#             return render(request, 'registration/login.html', {})
-#     return render(request, 'registration/login.html', {})
-            #return HttpResponseRedirect(reverse('blogposts:detail', args=(2,)))
-    # else:
-    #     MyLoginForm = LoginForm()
-            #return HttpResponseRedirect('blogposts/login.html')
-    #return render(request, 'blogposts/loggedin.html', {"username" : username})
+@login_required
+def dashboard(request):
+    print("HERE")
+    return render(request, 'blogposts/dashboard.html', {"section" : 'dashboard'})
 
 def create_comment(request, post_id):
     post = get_object_or_404(Post, pk=post_id)

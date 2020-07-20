@@ -9,13 +9,15 @@ app_name = 'blogposts'
 urlpatterns = [
     # ex: /polls/
     #path('', include('django.contrib.auth.urls')),
-    path('signup/', views.signup, name = 'signup'),
+
     #path('connection/',TemplateView.as_view(template_name = 'blogposts/login.html')),
+    path('', views.dashboard, name = 'dashboard'),
     path('login/', LoginView.as_view(template_name= 'registration/login.html',
     authentication_form = UserLoginForm), name = 'login'),
     path('logout/', LogoutView.as_view(template_name= 'registration/logout.html'),
     name = 'logout'),
-    path('', views.IndexView.as_view(), name = 'index'),
+    path('signup/', views.signup, name = 'signup'),
+    #path('', views.IndexView.as_view(), name = 'index'),
     # ex: /polls/5/
     # the 'name' value as called by the {% url %} template tag
     path('<int:pk>/', views.DetailView.as_view(), name='detail'),
