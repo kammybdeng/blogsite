@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.conf import settings
+
 # Create your models here.
 
 # class User(models.Model):
@@ -16,7 +18,7 @@ class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, default = 1)
     liked_users = ArrayField(models.IntegerField(default=0), default = list)
     def __str__(self):
-        return self.post_text
+        return self.content
 
 class Comment(models.Model):
     comment_text = models.CharField(max_length=200)
@@ -24,3 +26,12 @@ class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     def __str__(self):
         return self.comment_text
+
+class Profile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL,
+                                on_delete=models.CASCADE)
+    date_of_birth = models.DateField(blank=True, null=True)
+    photo = models.ImageField(upload_to='users/%Y/%m/%d/',
+                              blank=True)
+    def __str__(self):
+        return f'Profile for user {self.user.username}'

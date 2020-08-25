@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
+from .models import Profile
 
 class SignUpForm(UserCreationForm):
     # first_name = forms.CharField(max_length= 30, help_text = 'Required')
@@ -17,3 +18,13 @@ class UserLoginForm(AuthenticationForm):
 
         username = forms.CharField(max_length=30)
         password = forms.CharField(widget = forms.PasswordInput())
+
+class UserEditForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'email')
+
+class ProfileEditForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ('date_of_birth', 'photo')

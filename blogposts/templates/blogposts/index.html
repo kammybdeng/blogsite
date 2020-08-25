@@ -1,8 +1,27 @@
 {% load static %}
-
-<link rel="stylesheet" type="text/css" href="{% static 'blogposts/style.css' %}">
-
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{% block title %}{% endblock %}</title>
+  <link href="{% static "base.css" %}" rel="stylesheet">
+</head>
 <h1> Home Page </h1>
+  <div id="header">
+    <ul class="menu">
+      <li class="selected">
+        <a href="{% url "blogposts:dashboard" %}">My dashboard</a>
+      </li>
+    </ul>
+  <span class="user">
+      {% if request.user.is_authenticated %}
+        Hello {{ request.user.username }},
+        <a href="{% url "blogposts:logout" %}">Logout</a>
+      {% else %}
+        <a href="{% url "blogposts:login" %}">Login</a>
+      {% endif %}
+    </span>
+    </div>
+<body>
   <div>
     {% if last_ten_in_ascending_order %}
         <ul class="commentarea">
@@ -22,5 +41,4 @@
     <input type="submit" value="Submit">
     </form>
   </div>
-
-<a href="{% url 'blogposts:logout' %}" class="logoutbutton">Logout</a>
+</body>

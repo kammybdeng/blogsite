@@ -8,9 +8,9 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 
 from django.contrib.auth.models import User
-from .forms import SignUpForm
+from .forms import SignUpForm, UserEditForm, ProfileEditForm
 #LoginForm
-from .models import Post
+from .models import Post, Profile
 
 
 # def index(request):
@@ -53,8 +53,9 @@ def signup(request):
             form.save()
             username = form.cleaned_data.get('username')
             raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username= username, password =raw_password)
-            login(request, user)
+            new_user = authenticate(username= username, password =raw_password)
+            Profile.objects.create(user=new_user)
+            login(request, new_user)
             return HttpResponseRedirect(reverse('blogposts:index'))
     else:
         form = SignUpForm()
@@ -62,8 +63,42 @@ def signup(request):
 
 @login_required
 def dashboard(request):
-    print("HERE")
-    return render(request, 'blogposts/dashboard.html', {"section" : 'dashboard'})
+    #context_object_name = 'dashboard_last_ten_in_ascending_order'
+    def get_queryset(request):
+        """Return the user's last ten published questions."""
+        current_user = request.user
+        #author = current_user
+        # author = current_user
+        dashboard_last_ten_in_ascending_order = Post.objects.filter(author = current_user)
+        #print('P'*2, '---'*20, P)
+        #user_last_ten = P.order_by('-published_date')[:10]
+        #dashboard_last_ten_in_ascending_order = reversed(last_ten)
+        return dashboard_last_ten_in_ascending_order
+    user_post_list = get_queryset(request)
+    return render(request, 'blogposts/dashboard.html', {"section" : 'dashboard',
+    'dashboard_last_ten_in_ascending_order' : user_post_list})
+
+@login_required
+def edit(request):
+    if request.method == 'POST':
+        user_form = UserEditForm(instance=request.user,
+                                 data=request.POST)
+        profile_form = ProfileEditForm(
+                                    instance=request.user.profile,
+                                    data=request.POST,
+                                    files=request.FILES)
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+    else:
+        user_form = UserEditForm(instance=request.user)
+        profile_form = ProfileEditForm(
+                                    instance=request.user.profile)
+    return render(request,
+                  'blogposts/edit.html',
+                  {'user_form': user_form,
+                   'profile_form': profile_form})
+
 
 def create_comment(request, post_id):
     post = get_object_or_404(Post, pk=post_id)

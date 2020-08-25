@@ -1,7 +1,7 @@
-from django.urls import path
+from django.urls import path, reverse_lazy
 #from django.views import generic.TemplateView
 from django.conf.urls import include
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView, PasswordChangeDoneView
 from . import views
 from .forms import UserLoginForm
 
@@ -17,7 +17,10 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(template_name= 'registration/logout.html'),
     name = 'logout'),
     path('signup/', views.signup, name = 'signup'),
-    #path('', views.IndexView.as_view(), name = 'index'),
+    path('index/', views.IndexView.as_view(), name = 'index'),
+    path('edit/', views.edit, name='edit'),
+    path('password_change/', PasswordChangeView.as_view(success_url = reverse_lazy('blogposts:password_change_done')), name='password_change'),
+    path('password_change/done/', PasswordChangeDoneView.as_view(), name='password_change_done'),
     # ex: /polls/5/
     # the 'name' value as called by the {% url %} template tag
     path('<int:pk>/', views.DetailView.as_view(), name='detail'),

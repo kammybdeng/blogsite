@@ -3,4 +3,16 @@
 {% block content %}
   <h1>Dashboard</h1>
   <p>Welcome to your dashboard.</p>
+  <p>You can <a href="{% url "blogposts:edit" %}">edit your profile</a> or <a href="{% url "blogposts:password_change" %}">change your password</a>.</p>
+  <div>
+    {% if dashboard_last_ten_in_ascending_order %}
+        <ul>
+        {% for post in dashboard_last_ten_in_ascending_order %}
+           <li><a href="{% url 'blogposts:detail' post.id %}">{{ post.content }}</a> - {{ post.author }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No posts are available.</p>
+    {% endif %}
+  </div>
 {% endblock %}

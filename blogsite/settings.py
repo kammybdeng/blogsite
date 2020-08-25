@@ -51,9 +51,9 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'blogsite.urls'
-LOGIN_REDIRECT_URL = 'dashboard'
+LOGIN_REDIRECT_URL = 'blogposts:dashboard'
 LOGIN_URL = 'blogposts:login'
-LOGOUT_URL = 'logout'
+LOGOUT_URL = 'blogposts:logout'
 
 
 TEMPLATES = [
