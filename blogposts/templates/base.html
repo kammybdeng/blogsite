@@ -16,6 +16,16 @@
         </li>
     </ul>
     {% endif %}
+    {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="{{ message.tags }}">
+          {{ message|safe }}
+          <a href="#" class="close">x</a>
+        </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
     <span class="user">
         {% if request.user.is_authenticated %}
           Hello {{ request.user.username }},
@@ -25,9 +35,20 @@
         {% endif %}
       </span>
   </div>
+
   <div id="content">
     {% block content %}
     {% endblock %}
+    {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="{{ message.tags }}">
+          {{ message|safe }}
+          <a href="#" class="close">x</a>
+        </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
   </div>
 </body>
 </html>

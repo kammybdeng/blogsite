@@ -26,7 +26,11 @@
     {% if last_ten_in_ascending_order %}
         <ul class="commentarea">
         {% for post in last_ten_in_ascending_order %}
-           <li><a href="{% url 'blogposts:detail' post.id %}">{{ post.content }}</a> - {{ post.author }}</li>
+           <h3><a href="{% url 'blogposts:detail' post.id %}">{{ post.title }}</a>
+           </h3>
+           <p class = "date">Published {{ post.published_date}} by {{post.author}}</p>
+           <p class = "tags">Tags: {{ post.tags.all|join:", "}}</p>
+           <p >{{ post.content}}</p>
         {% endfor %}
         </ul>
     {% else %}

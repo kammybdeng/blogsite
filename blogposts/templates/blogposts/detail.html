@@ -14,7 +14,11 @@
   {% csrf_token %}
   <input type="submit" value="Like">
 </form>
-
+<p>
+  <a href="{% url "blogposts:post_share" post.id %}">
+    Share this post
+  </a>
+</p>
 <div class='commentlist'>
 {% for c in post.comment_set.all %}
     <li>{{ c.comment_text }} </li>

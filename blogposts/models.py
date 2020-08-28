@@ -3,6 +3,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.urls import reverse
+from taggit.managers import TaggableManager
 
 # Create your models here.
 
@@ -13,12 +15,16 @@ from django.conf import settings
 
 class Post(models.Model):
     content = models.CharField(max_length=300)
+    title = models.CharField(max_length=50, default = 'title example')
     published_date = models.DateTimeField('published date', default = timezone.now)
     likes = models.IntegerField(default=0)
     author = models.ForeignKey(User, on_delete=models.CASCADE, default = 1)
     liked_users = ArrayField(models.IntegerField(default=0), default = list)
+    tags = TaggableManager()
     def __str__(self):
         return self.content
+    def get_absolute_url(self):
+        return reverse('blogposts:detail', args=[self.id])
 
 class Comment(models.Model):
     comment_text = models.CharField(max_length=200)

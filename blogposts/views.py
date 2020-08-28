@@ -1,15 +1,15 @@
 from django.shortcuts import render, get_object_or_404, redirect
-#from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.views import generic
+from django.contrib import messages
+from django.core.mail import send_mail
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone
-
 from django.contrib.auth.models import User
-from .forms import SignUpForm, UserEditForm, ProfileEditForm
-#LoginForm
+from django.utils import timezone
+from .forms import SignUpForm, UserEditForm, ProfileEditForm, EmailPostForm, NewPostForm
+# local models
 from .models import Post, Profile
 
 
@@ -90,10 +90,12 @@ def edit(request):
         if user_form.is_valid() and profile_form.is_valid():
             user_form.save()
             profile_form.save()
+            messages.success(request, 'Profile updated successfully')
+        else:
+            messages.error(request, 'Error updating your profile')
     else:
         user_form = UserEditForm(instance=request.user)
-        profile_form = ProfileEditForm(
-                                    instance=request.user.profile)
+        profile_form = ProfileEditForm(instance=request.user.profile)
     return render(request,
                   'blogposts/edit.html',
                   {'user_form': user_form,
@@ -111,6 +113,11 @@ def create_comment(request, post_id):
     #     return HttpResponseRedirect(reverse('blogposts:detail', args=(post.id,)))
 
 def create_post(request):
+    # if request.method = 'POST':
+    #     new_post_form = NewPostForm(instance = request.post,
+    #                                 data=request.POST)
+    #     if new_post_form is_valid():
+
     pending_post = request.POST['create_post']
     if pending_post != '':
         if request.user.is_authenticated:
@@ -137,6 +144,30 @@ def like_post(request, post_id):
         return HttpResponse("You already liked blog %s." % post_id)
     return HttpResponseRedirect(reverse('blogposts:detail', args=(post.id,)))
 
+def post_share(request, post_id):
+    # Retrieve post by id
+    post = get_object_or_404(Post, pk=post_id)
+    sent = False
+    if request.method == 'POST':
+        # Form was submitted
+        form = EmailPostForm(request.POST)
+        if form.is_valid():
+            # Form fields passed validation
+            cd = form.cleaned_data
+            post_url = request.build_absolute_uri(
+                post.get_absolute_url())
+            subject = f"{cd['name']} recommends you read " \
+                      f"{post.title}"
+            message = f"Read {post.title} at {post_url}\n\n" \
+                      f"{cd['name']}\'s comments: {cd['comments']}"
+            send_mail(subject, message, 'kammyinquiries@gmail.com',
+                      [cd['to']])
+            sent = True
+    else:
+        form = EmailPostForm()
+    return render(request, 'blogposts/share.html', {'post': post,
+                                                    'form': form,
+                                                    'sent': sent})
 
 # def vote(request, question_id):
 #     question = get_object_or_404(Question, pk=question_id)
