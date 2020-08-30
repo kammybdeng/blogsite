@@ -2,42 +2,61 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.views import generic
-from django.contrib import messages
 from django.core.mail import send_mail
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.contrib import messages
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.utils import timezone
+from taggit.models import Tag
 from .forms import SignUpForm, UserEditForm, ProfileEditForm, EmailPostForm, NewPostForm
-# local models
 from .models import Post, Profile
 
 
-# def index(request):
-#     return HttpResponse("Hello, You're at the post homepage.")
+
 
 # class SignupView(generic.DetailView):
 #     model = Post
 #     template_name = 'blogposts/signup.html'
 
 
-class IndexView(generic.ListView):
-    #model = Post
-    template_name = 'blogposts/index.html'
-    context_object_name = 'last_ten_in_ascending_order'
+# class IndexView(generic.ListView):
+#     model = Post
+#     template_name = 'blogposts/index.html'
+#     context_object_name = 'last_ten_in_ascending_order'
+#     paginate_by = 5
+#     def get_queryset(self):
+#         """Return the last ten published questions."""
+#         last_ten_in_ascending_order = Post.objects.order_by('-published_date')[:10]
+#         #last_ten_in_ascending_order = reversed(last_ten)
+#         #print(last_ten_in_ascending_order)
+#         return last_ten_in_ascending_order
 
-    def get_queryset(self):
-        """Return the last ten published questions."""
-        last_ten = Post.objects.order_by('-published_date')[:10]
-        last_ten_in_ascending_order = reversed(last_ten)
-        return last_ten_in_ascending_order
-
-# def details(request, post_id):
-#     post = get_object_or_404(Post, pk=post_id)
-#     post_text = Post.objects.get(pk=post_id).post_text
-#     return HttpResponse("Hello, You're viewing the detail page of %s. \n\n %s" % (post_id,post_text))
-
-## generic template view
+def post_list(request, tag_slug=None):
+    object_list = Post.objects.all().order_by('-id')
+    print(object_list)
+    tag = None
+    if tag_slug:
+        tag = get_object_or_404(Tag, slug = tag_slug)
+        object_list = object_list.filter(tags__in = [tag])
+    paginator = Paginator(object_list, 5)
+    # if request.method == 'GET' and 'page' in request.GET.get:
+    print(request.GET)
+    page = request.GET.get("page")
+    print(page)
+    print('--'*20)
+    try:
+        posts = paginator.page(page)
+    except PageNotAnInteger:
+        ## if page is not an integer return the first page
+        posts = paginator.page(1)
+    except EmptyPage:
+        ## if page is out of range, return the last page
+        posts = paginator.page(paginator.num_pages)
+    return render(request, 'blogposts/index.html', {'page': page,
+                                                    'posts': posts,
+                                                    'tag': tag})
 
 class DetailView(generic.DetailView):
     model = Post
@@ -45,8 +64,6 @@ class DetailView(generic.DetailView):
 
 
 def signup(request):
-    # if request.user.is_authenticated:
-    #     return render(request, 'blogposts/index.html')
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
@@ -67,12 +84,8 @@ def dashboard(request):
     def get_queryset(request):
         """Return the user's last ten published questions."""
         current_user = request.user
-        #author = current_user
-        # author = current_user
-        dashboard_last_ten_in_ascending_order = Post.objects.filter(author = current_user)
-        #print('P'*2, '---'*20, P)
-        #user_last_ten = P.order_by('-published_date')[:10]
-        #dashboard_last_ten_in_ascending_order = reversed(last_ten)
+        dashboard_last_ten_in_ascending_order = Post.objects.filter(author = current_user).order_by('-published_date')[:10]
+        #print(dashboard_last_ten_in_ascending_order, '---'*20)
         return dashboard_last_ten_in_ascending_order
     user_post_list = get_queryset(request)
     return render(request, 'blogposts/dashboard.html', {"section" : 'dashboard',
@@ -112,12 +125,29 @@ def create_comment(request, post_id):
     # else:
     #     return HttpResponseRedirect(reverse('blogposts:detail', args=(post.id,)))
 
-def create_post(request):
-    # if request.method = 'POST':
-    #     new_post_form = NewPostForm(instance = request.post,
-    #                                 data=request.POST)
-    #     if new_post_form is_valid():
+def new_post(request):
+    if request.method == 'POST':
+        new_post_form = NewPostForm(instance = request.user,
+                                    data=request.POST)
+        if new_post_form.is_valid():
+            new_post_form.save(commit=False)
+            cleaned_data = new_post_form.cleaned_data
+            current_user = request.user
+            post = Post(title = cleaned_data['title'],
+                        content = cleaned_data['content'],
+                        published_date = timezone.now(),
+                        author = current_user)
+            post.save()
+            post.tags.add(*cleaned_data['tags'])
+            return HttpResponseRedirect(reverse('blogposts:detail', args=(post.id,)))
+        else:
+            messages.error(request, 'Error creating new post')
+    else:
+        new_post_form = NewPostForm(instance = request.user)
+    return render(request, 'blogposts/new_post.html', {'new_post_form': new_post_form})
 
+
+def create_post(request):
     pending_post = request.POST['create_post']
     if pending_post != '':
         if request.user.is_authenticated:
@@ -129,6 +159,19 @@ def create_post(request):
         return HttpResponseRedirect(reverse('blogposts:detail', args=(post.id,)))
     return HttpResponseRedirect(reverse('blogposts:index'))
 
+def delete_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    if request.user.is_authenticated:
+        current_user = request.user
+        post_author = post.author
+        if current_user == post_author:
+            post.delete()
+            deleted = True
+            messages.success(request, 'Post deleted successfully')
+        else:
+            messages.error(request, 'Cannot Delete Post')
+            return HttpResponseRedirect(reverse('blogposts:detail', args=(post.id,)))
+    return HttpResponseRedirect(reverse('blogposts:index'))
 
 def like_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
@@ -161,13 +204,15 @@ def post_share(request, post_id):
             message = f"Read {post.title} at {post_url}\n\n" \
                       f"{cd['name']}\'s comments: {cd['comments']}"
             send_mail(subject, message, 'kammyinquiries@gmail.com',
-                      [cd['to']])
+                      [cd['email']])
             sent = True
     else:
         form = EmailPostForm()
     return render(request, 'blogposts/share.html', {'post': post,
                                                     'form': form,
                                                     'sent': sent})
+
+
 
 # def vote(request, question_id):
 #     question = get_object_or_404(Question, pk=question_id)

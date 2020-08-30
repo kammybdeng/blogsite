@@ -20,7 +20,7 @@ class Post(models.Model):
     likes = models.IntegerField(default=0)
     author = models.ForeignKey(User, on_delete=models.CASCADE, default = 1)
     liked_users = ArrayField(models.IntegerField(default=0), default = list)
-    tags = TaggableManager()
+    tags = TaggableManager(blank=True)
     def __str__(self):
         return self.content
     def get_absolute_url(self):

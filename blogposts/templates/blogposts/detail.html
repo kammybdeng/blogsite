@@ -1,18 +1,22 @@
-{% load static %}
-
-<link rel="stylesheet" type="text/css" href="{% static 'base.css' %}">
-
-<h1> Post </h1>
-
+{% extends "base.html" %}
+{% block title %}Post Detail{% endblock %}
+{% block content %}
+<h2> {{ post.title }} </h2>
 <div class="post">
-    <p style="font-size:15px">{{ post.author.username }}    {{ post.published_date.date }}</p>
-    <p style="font-family:verdana; font-size:30px">{{ post.content|linebreaksbr }}</p>
+    <p style="font-size:12px; font-weight: bold"> Published by {{ post.author.username }} on {{ post.published_date.date }}</p>
+    <p class = 'tags' style="font-weight: 500; font-size:12px"> Tags:
+      {{ post.tags.all|join:", " }}</p>
+    <p style="font-family:verdana; font-size:15px">{{ post.content|linebreaksbr }}</p>
     <p>{{ post.likes }} like{{ post.like|pluralize }}</p>
 </div>
 
 <form class="likebutton" action="{% url 'blogposts:like_post' post.id %}" method="post">
   {% csrf_token %}
   <input type="submit" value="Like">
+</form>
+<form class="deletebutton" action="{% url 'blogposts:delete_post' post.id %}" method="post">
+  {% csrf_token %}
+  <input type="submit" value="Delete">
 </form>
 <p>
   <a href="{% url "blogposts:post_share" post.id %}">
@@ -36,10 +40,9 @@
 <input type="submit" value="Submit">
 </form>
 
-<a href="{% url 'blogposts:index' %}" class="homepagebutton">Home Page</a>
-
 <!-- <form action="{% url 'blogposts:index' %} ">
     <input type="submit" value="Home Page" />
 </form> -->
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+{% endblock %}
