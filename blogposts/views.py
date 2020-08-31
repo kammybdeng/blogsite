@@ -8,18 +8,12 @@ from django.contrib import messages
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db.models import Count
 from django.utils import timezone
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank, TrigramSimilarity
 from taggit.models import Tag
-from .forms import SignUpForm, UserEditForm, ProfileEditForm, EmailPostForm, NewPostForm
+from .forms import SignUpForm, UserEditForm, ProfileEditForm, EmailPostForm, NewPostForm, SearchForm
 from .models import Post, Profile
-
-
-
-
-# class SignupView(generic.DetailView):
-#     model = Post
-#     template_name = 'blogposts/signup.html'
-
 
 # class IndexView(generic.ListView):
 #     model = Post
@@ -35,17 +29,12 @@ from .models import Post, Profile
 
 def post_list(request, tag_slug=None):
     object_list = Post.objects.all().order_by('-id')
-    print(object_list)
     tag = None
     if tag_slug:
         tag = get_object_or_404(Tag, slug = tag_slug)
         object_list = object_list.filter(tags__in = [tag])
     paginator = Paginator(object_list, 5)
-    # if request.method == 'GET' and 'page' in request.GET.get:
-    print(request.GET)
     page = request.GET.get("page")
-    print(page)
-    print('--'*20)
     try:
         posts = paginator.page(page)
     except PageNotAnInteger:
@@ -62,6 +51,13 @@ class DetailView(generic.DetailView):
     model = Post
     template_name = 'blogposts/detail.html'
 
+# def post_detail(request, post):
+#     post = get_object_or_404(Post)
+#     ## List of similar posts
+#     post_tags_ids = post.tags.values_list('id', flat=True)
+#     similar_posts = Post.objects.filter(tags__in = post_tags_ids).exclude(id=post.id)
+#     return render(request, 'blogposts/details.html', {'post': post,
+#                                                       'comments', comment})
 
 def signup(request):
     if request.method == 'POST':
@@ -85,7 +81,6 @@ def dashboard(request):
         """Return the user's last ten published questions."""
         current_user = request.user
         dashboard_last_ten_in_ascending_order = Post.objects.filter(author = current_user).order_by('-published_date')[:10]
-        #print(dashboard_last_ten_in_ascending_order, '---'*20)
         return dashboard_last_ten_in_ascending_order
     user_post_list = get_queryset(request)
     return render(request, 'blogposts/dashboard.html', {"section" : 'dashboard',
@@ -122,8 +117,6 @@ def create_comment(request, post_id):
         post.comment_set.create(comment_text = pending_comment,
                                 published_date = timezone.now())
     return HttpResponseRedirect(reverse('blogposts:detail', args=(post.id,)))
-    # else:
-    #     return HttpResponseRedirect(reverse('blogposts:detail', args=(post.id,)))
 
 def new_post(request):
     if request.method == 'POST':
@@ -212,29 +205,26 @@ def post_share(request, post_id):
                                                     'form': form,
                                                     'sent': sent})
 
-
-
-# def vote(request, question_id):
-#     question = get_object_or_404(Question, pk=question_id)
-#
-#     try:
-#         selected_choice = question.choice_set.get(pk=request.POST['choice'])
-#     except (KeyError, Choice.DoesNotExist):
-#         # Redisplay the question voting form.
-#         return render(request, 'polls/detail.html', {
-#             'question': question,
-#             'error_message': "You didn't select a choice.",
-#         })
-#     else:
-#         selected_choice.votes += 1
-#         selected_choice.save()
-#         # Always return an HttpResponseRedirect after successfully dealing
-#         # with POST data. This prevents data from being posted twice if a
-#         # user hits the Back button.
-#         # POST => HttpResponseRedirect => success page
-#         # GET => HttpResponse => success page
-#         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
-#     return HttpResponse("You're voting on question %s." % question_id)
+def post_search(request):
+    form = SearchForm()
+    query = None
+    results = []
+    if 'query' in request.GET:
+        form = SearchForm(request.GET)
+        if form.is_valid():
+            query = form.cleaned_data['query']
+            search_vector = SearchVector('title', 'content')
+            search_query = SearchQuery(query)
+            results = Post.objects.annotate(search = search_vector,
+                                            rank = SearchRank(search_vector, search_query)
+                                            ).filter(search=search_query).order_by('-rank')
+            print(results, '--'*10)
+            if not results:
+                results = Post.objects.annotate(similarity = TrigramSimilarity('title', query),
+                ).filter(similarity__gt = 0.1).order_by('-similarity')
+    return render(request, 'blogposts/search.html', {'form': form,
+                                                    'query': query,
+                                                    'results': results})
 
 
 

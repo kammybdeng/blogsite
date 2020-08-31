@@ -81,9 +81,18 @@ ol {
 }
 
 #content {
+    float:left;
+    width:40%;
     padding:30px 100px;
 }
 
+#sidebar {
+    float:right;
+    width:25%;
+    padding:10px;
+    background:#1cdf78;
+    height:100%;
+}
 /* forms */
 form {
     overflow:auto;

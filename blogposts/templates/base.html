@@ -13,8 +13,10 @@
     <ul class="menu">
       <li {% if section == "dashboard" %}class="selected"{% endif %}>
         <a href="{% url "blogposts:dashboard" %}">My dashboard</a>
+      </li>
+      <li>
         <a href="{% url "blogposts:new_post" %}">New Post</a>
-        </li>
+      </li>
     </ul>
     {% endif %}
     {% if messages %}
@@ -36,10 +38,8 @@
         {% endif %}
       </span>
   </div>
-
   <div id="content">
     {% block content %}
-    {% endblock %}
     {% if messages %}
     <ul class="messages">
       {% for message in messages %}
@@ -47,9 +47,10 @@
           {{ message|safe }}
           <a href="#" class="close">x</a>
         </li>
-      {% endfor %}
+        {% endfor %}
     </ul>
     {% endif %}
+    {% endblock %}
   </div>
 </body>
 </html>

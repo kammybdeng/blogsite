@@ -32,7 +32,6 @@ SITE_ID = 1
 
 INSTALLED_APPS = [
     'blogposts.apps.BlogpostsConfig',
-    'taggit',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django.contrib.sitemaps',
+    'django.contrib.postgres',
+    'taggit'
 ]
 
 MIDDLEWARE = [

@@ -40,3 +40,9 @@ class NewPostForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ('title', 'tags', 'content')
+
+class SearchForm(forms.Form):
+    query = forms.CharField()
+
+
+    

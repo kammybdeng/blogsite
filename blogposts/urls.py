@@ -29,12 +29,12 @@ urlpatterns = [
     path('password_change/', PasswordChangeView.as_view(success_url = reverse_lazy('blogposts:password_change_done')), name='password_change'),
     path('<int:pk>/', views.DetailView.as_view(), name='detail'),
     path('new_post/', views.new_post, name='new_post'),
-    #path('create_post/', views.create_post, name='create_post'),
     path('<int:post_id>/share/', views.post_share, name='post_share'),
     path('<int:post_id>/create_comment/', views.create_comment, name='create_comment'),
     path('<int:post_id>/like_post/', views.like_post, name='like_post'),
     path('<int:post_id>/delete_post/', views.delete_post, name ='delete_post'),
     path('tag/<slug:tag_slug>/', views.post_list, name = 'post_list_by_tag'),
+    path('search/', views.post_search, name='post_search'),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps},
     name = 'django.contrib.sitemaps.views.sitemap')]
     # ex: /polls/5/results/

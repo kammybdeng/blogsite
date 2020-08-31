@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% load blog_tags %}
 {% block title %}Home Page{% endblock %}
 {% block content %}
 <h1> Home Page </h1>
 <body>
-  <div>
+  <div id="content">
     {% if tag %}
       <h2>Posts tagged with "{{ tag.name }}"</h2>
     {% endif %}
@@ -24,7 +25,15 @@
     {% else %}
         <p>No posts are available.</p>
     {% endif %}
+  {% include "pagination.html" with page=posts %}
+  </div>
+  <div id="sidebar">
+    <h2>Site Information</h2>
+    <p>Total number of posts on the site is: {% total_posts %}</p>
+    <form class="deletebutton" action="{% url 'blogposts:post_search' %}" method="post">
+      {% csrf_token %}
+      <input type="submit" value="Search">
+    </form>
   </div>
 </body>
-{% include "pagination.html" with page=posts %}
 {% endblock %}
