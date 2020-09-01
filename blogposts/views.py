@@ -47,17 +47,19 @@ def post_list(request, tag_slug=None):
                                                     'posts': posts,
                                                     'tag': tag})
 
-class DetailView(generic.DetailView):
-    model = Post
-    template_name = 'blogposts/detail.html'
+# class DetailView(generic.DetailView):
+#     model = Post
+#     template_name = 'blogposts/detail.html'
 
-# def post_detail(request, post):
-#     post = get_object_or_404(Post)
-#     ## List of similar posts
-#     post_tags_ids = post.tags.values_list('id', flat=True)
-#     similar_posts = Post.objects.filter(tags__in = post_tags_ids).exclude(id=post.id)
-#     return render(request, 'blogposts/details.html', {'post': post,
-#                                                       'comments', comment})
+def post_detail(request, post_id):
+    post = get_object_or_404(Post, pk = post_id)
+    ## List of similar posts
+    post_tags_ids = post.tags.values_list('id', flat=True)
+    similar_posts = Post.objects.filter(tags__in = post_tags_ids).exclude(id=post_id)
+    similar_posts = similar_posts.annotate(same_tags = Count('tags')).order_by('-same_tags', '-published_date')[:4]
+    return render(request, 'blogposts/detail.html', {'post': post,
+                                                      # 'comments': comment,
+                                                      'similar_posts': similar_posts})
 
 def signup(request):
     if request.method == 'POST':
@@ -109,15 +111,17 @@ def edit(request):
                   {'user_form': user_form,
                    'profile_form': profile_form})
 
-
+@login_required
 def create_comment(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     pending_comment = request.POST['comment']
     if pending_comment != '':
-        post.comment_set.create(comment_text = pending_comment,
+        post.comment_set.create(commenter = request.user,
+                                comment_text = pending_comment,
                                 published_date = timezone.now())
     return HttpResponseRedirect(reverse('blogposts:detail', args=(post.id,)))
 
+@login_required
 def new_post(request):
     if request.method == 'POST':
         new_post_form = NewPostForm(instance = request.user,
@@ -140,18 +144,18 @@ def new_post(request):
     return render(request, 'blogposts/new_post.html', {'new_post_form': new_post_form})
 
 
-def create_post(request):
-    pending_post = request.POST['create_post']
-    if pending_post != '':
-        if request.user.is_authenticated:
-            current_user = request.user
-            post = Post(content = pending_post,
-                        published_date = timezone.now(),
-                        author = current_user)
-            post.save()
-        return HttpResponseRedirect(reverse('blogposts:detail', args=(post.id,)))
-    return HttpResponseRedirect(reverse('blogposts:index'))
-
+# def create_post(request):
+#     pending_post = request.POST['create_post']
+#     if pending_post != '':
+#         if request.user.is_authenticated:
+#             current_user = request.user
+#             post = Post(content = pending_post,
+#                         published_date = timezone.now(),
+#                         author = current_user)
+#             post.save()
+#         return HttpResponseRedirect(reverse('blogposts:detail', args=(post.id,)))
+#     return HttpResponseRedirect(reverse('blogposts:index'))
+@login_required
 def delete_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     if request.user.is_authenticated:
@@ -166,6 +170,7 @@ def delete_post(request, post_id):
             return HttpResponseRedirect(reverse('blogposts:detail', args=(post.id,)))
     return HttpResponseRedirect(reverse('blogposts:index'))
 
+@login_required
 def like_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     if request.user.is_authenticated:
@@ -179,7 +184,7 @@ def like_post(request, post_id):
     else:
         return HttpResponse("You already liked blog %s." % post_id)
     return HttpResponseRedirect(reverse('blogposts:detail', args=(post.id,)))
-
+@login_required
 def post_share(request, post_id):
     # Retrieve post by id
     post = get_object_or_404(Post, pk=post_id)
@@ -204,7 +209,6 @@ def post_share(request, post_id):
     return render(request, 'blogposts/share.html', {'post': post,
                                                     'form': form,
                                                     'sent': sent})
-
 def post_search(request):
     form = SearchForm()
     query = None

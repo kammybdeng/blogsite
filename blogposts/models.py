@@ -30,6 +30,7 @@ class Comment(models.Model):
     comment_text = models.CharField(max_length=200)
     published_date = models.DateTimeField('published date')
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    commenter = models.ForeignKey(User, on_delete=models.CASCADE, default = 1)
     def __str__(self):
         return self.comment_text
 

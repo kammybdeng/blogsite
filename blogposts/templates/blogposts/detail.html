@@ -19,30 +19,39 @@
   <input type="submit" value="Delete">
 </form>
 <p>
-  <a href="{% url "blogposts:post_share" post.id %}">
-    Share this post
-  </a>
+  <a href="{% url "blogposts:post_share" post.id %}">Share this post</a>
 </p>
-<div class='commentlist'>
-{% for c in post.comment_set.all %}
-    <li>{{ c.comment_text }} </li>
-{% endfor %}
-</div>
 
+{% for c in post.comment_set.all %}
+  <div class='comment'>
+    <p class="info">
+      Comment {{ forloop.counter }} by {{ c.commenter}}
+    </p>
+      {{ c.comment_text }}
+  </div>
+{% empty %}
+  <p>There are no comments yet.</p>
+{% endfor %}
+<p></p>
+<div class='commentarea'>
 <form action="{% url 'blogposts:create_comment' post.id %}" method="post">
   {% csrf_token %}
   <label for="comment">Comment:</label>
   <br>
-    <textarea
-    rows="4" cols="50"
-    id="c{{ forloop.counter }}" name="comment" ></textarea>
+    <textarea rows="4" cols="50" name="comment"> </textarea>
   <br>
 <input type="submit" value="Submit">
 </form>
-
-<!-- <form action="{% url 'blogposts:index' %} ">
-    <input type="submit" value="Home Page" />
-</form> -->
-
+</div>
+<div class='similar_posts'>
+<h2>Similar posts</h2>
+{% for post in similar_posts %}
+  <p>
+    <a href="{% url 'blogposts:detail' post.id %}">{{ post.title }}</a>
+  </p>
+{% empty %}
+  There are no similar posts yet.
+{% endfor %}
+</div>
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 {% endblock %}
