@@ -13,7 +13,9 @@ from django.utils import timezone
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank, TrigramSimilarity
 from taggit.models import Tag
 from .forms import SignUpForm, UserEditForm, ProfileEditForm, EmailPostForm, NewPostForm, SearchForm
-from .models import Post, Profile
+from .models import Post, Profile, Contact
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 
 # class IndexView(generic.ListView):
 #     model = Post
@@ -231,12 +233,41 @@ def post_search(request):
                                                     'results': results})
 
 
+@login_required
+def user_list(request):
 
-    # <form action="{% url 'polls:vote' question.id %}" method="post">
-    # {% csrf_token %}
-    # {% for choice in question.choice_set.all %}
-    #     <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
-    #     <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>
-    # {% endfor %}
-    # <input type="submit" value="Vote">
-    # </form>
+    users = User.objects.all()
+    print(users)
+    return render(request,
+                    'blogposts/list.html',
+                    {'section': 'people',
+                    'users': users})
+
+@login_required
+def user_detail(request, username):
+    user = get_object_or_404(User, username=username)
+    return render(request,
+                 'blogposts/user_detail.html',
+                {'section': 'people',
+                 'user': user})
+
+@require_POST
+@login_required
+def user_follow(request):
+    print('-777-'*10)
+    user_id = request.POST.get('id')
+    action = request.POST.get('action')
+    if user_id and action:
+        try:
+            user = User.objects.get(id=user_id)
+            if action == 'follow':
+                Contact.objects.get_or_create(
+                    user_from=request.user,
+                    user_to=user)
+            else:
+                Contact.objects.filter(user_from=request.user,
+                                       user_to=user).delete()
+            return JsonResponse({'status':'ok'})
+        except User.DoesNotExist:
+            return JsonResponse({'status':'error'})
+    return JsonResponse({'status':'error'})

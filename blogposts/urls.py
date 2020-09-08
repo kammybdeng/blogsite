@@ -13,7 +13,6 @@ sitemaps = {
 
 urlpatterns = [
     #path('', include('django.contrib.auth.urls')),
-
     #path('connection/',TemplateView.as_view(template_name = 'blogposts/login.html')),
     path('index/', views.post_list, name = 'index'),
     #path('<int:pk>/', views.DetailView.as_view(), name='detail'),
@@ -40,4 +39,10 @@ urlpatterns = [
     path('reset/<uidb64>/<token>/', PasswordResetConfirmView.as_view(success_url = reverse_lazy('blogposts:password_reset_complete')), name='password_reset_confirm'),
     path('reset/done/', PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps},
-    name = 'django.contrib.sitemaps.views.sitemap')]
+    name = 'django.contrib.sitemaps.views.sitemap'),
+
+    path('users/', views.user_list, name='user_list'),
+    path('users/<username>/', views.user_detail, name='user_detail'),
+    path('users/follow/', views.user_follow, name='user_follow'),
+
+]

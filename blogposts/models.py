@@ -5,8 +5,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.urls import reverse
 from taggit.managers import TaggableManager
-
-# Create your models here.
+#from django.contrib.auth import get_user_model
 
 # class User(models.Model):
 #     user_id = models.IntegerField(default=0)
@@ -42,3 +41,29 @@ class Profile(models.Model):
                               blank=True)
     def __str__(self):
         return f'Profile for user {self.user.username}'
+
+class Contact(models.Model):
+    user_from = models.ForeignKey('auth.User',
+                                  related_name='rel_from_set',
+                                  on_delete=models.CASCADE)
+    user_to = models.ForeignKey('auth.User',
+                                related_name='rel_to_set',
+                                on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True,
+                                   db_index=True)
+    class Meta:
+        ordering = ('-created',)
+    def __str__(self):
+        return f'{self.user_from} follows {self.user_to}'
+
+following = models.ManyToManyField('self',
+                                   through=Contact,
+                                   related_name='followers',
+                                   symmetrical=False)
+# Add following field to User dynamically
+user_model = User
+user_model.add_to_class('following',
+                        models.ManyToManyField('self',
+                                                through=Contact,
+                                                related_name='followers',
+                                                symmetrical=False))
